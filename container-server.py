@@ -41,8 +41,11 @@ def containers_index():
     curl -s -X GET -H 'Accept: application/json' http://localhost:8080/containers?state=running | python -mjson.tool
 
     """
-
-    resp = ''
+    if request.args.get('state')== 'running':
+	output = docker('ps')
+    else:
+	output = docker('ps', '-a')
+    resp = json.dumps(docker_ps_to_array(output))
     return Response(response=resp, mimetype="application/json")
 
 @app.route('/images', methods=['GET'])
@@ -51,19 +54,23 @@ def images_index():
     List all images 
     
     Complete the code below generating a valid response. 
-    """
     
-    resp = ''
+    curl -s -X GET -H 'Accept: application/json'
+    http://localhost:8080/images | python -mjson.tool
+    """
+    output = docker('images')
+    resp = json.dumps(docker_images_to_array(output))
     return Response(response=resp, mimetype="application/json")
 
 @app.route('/containers/<id>', methods=['GET'])
 def containers_show(id):
     """
     Inspect specific container
-
+curl -s -X GET -H 'Accept: application/json'
+http://localhost:8080/container/<id> | python -mjson.tool
     """
-
-    resp = ''
+    output = docker('inspect', id)
+    resp = json.dumps(docker_logs_to_object(id, output))
 
     return Response(response=resp, mimetype="application/json")
 
@@ -71,9 +78,12 @@ def containers_show(id):
 def containers_log(id):
     """
     Dump specific container logs
-
+    curl -s -X GET -H 'Accept: application/json'
+    http://localhost:8080/container/<id>/logs | python -mjson.tool
     """
-    resp = ''
+    output = docker ('logs', id)
+    resp = json.dumps(docker_logs_to_object(id, output))
+
     return Response(response=resp, mimetype="application/json")
 
 
@@ -81,9 +91,13 @@ def containers_log(id):
 def images_remove(id):
     """
     Delete a specific image
+    curl -s -X DELETE -H 'Accept: application/json'
+    http://localhost:8080/images/<id> | python -mjson.tool
     """
+
     docker ('rmi', id)
     resp = '{"id": "%s"}' % id
+
     return Response(response=resp, mimetype="application/json")
 
 @app.route('/containers/<id>', methods=['DELETE'])
