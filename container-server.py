@@ -105,27 +105,51 @@ def containers_remove(id):
     """
     Delete a specific container - must be already stopped/killed
 
+    curl -s -X DELETE -H 'Accept: application/json'
+    http://localhost:8080/containers/<id> | python -mjson.tool
+
     """
-    resp = ''
+    docker ('stop', id)
+    docker ('rm', id)
+    resp = '{"id": "%s"}' % id
     return Response(response=resp, mimetype="application/json")
 
 @app.route('/containers', methods=['DELETE'])
 def containers_remove_all():
     """
     Force remove all containers - dangrous!
+curl -X DELETE -H 'Accept: application/json' 
+http://localhost:8080/containers
 
     """
-    resp = ''
+    output = docker('ps', '-a')
+    list = docker_ps_to_array(output)
+    idS = []    
+    for c in list:
+    	id = c['id']
+    	docker('stop', id)
+    	docker('rm', id)
+     	idS.append(id)
+    resp = json.dumps(idS)
     return Response(response=resp, mimetype="application/json")
 
 @app.route('/images', methods=['DELETE'])
 def images_remove_all():
     """
     Force remove all images - dangrous!
+curl -X DELETE -H 'Accept: application/json'
+http://localhost:8080/images
 
     """
- 
-    resp = ''
+
+    output = docker('images')
+    list = docker_images_to_array(output)
+    idS = []
+    for c in list:
+        id = c['id']
+        docker('rmi', id)
+        idS.append(id)
+    resp = json.dumps(idS)
     return Response(response=resp, mimetype="application/json")
 
 
@@ -176,6 +200,8 @@ def containers_update(id):
         state = body['state']
         if state == 'running':
             docker('restart', id)
+	if state == 'stopped':
+            docker('stop', id)
     except:
         pass
 
@@ -190,7 +216,14 @@ def images_update(id):
     curl -s -X PATCH -H 'Content-Type: application/json' http://localhost:8080/images/7f2619ed1768 -d '{"tag": "test:1.0"}'
 
     """
-    resp = ''
+    body = request.get_json(force=True)
+    try:
+	newTag = body['tag']
+    	docker ('tag', id, newTag)
+    except:
+	pass
+
+    resp = '{"id": "%s"}' % id
     return Response(response=resp, mimetype="application/json")
 
 
@@ -216,7 +249,7 @@ def docker_ps_to_array(output):
     for c in [line.split() for line in output.splitlines()[1:]]:
         each = {}
         each['id'] = c[0]
-        each['image'] = c[1]
+   	each['image'] = c[1]
         each['name'] = c[-1]
         each['ports'] = c[-2]
         all.append(each)
