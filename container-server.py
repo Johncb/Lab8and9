@@ -4,6 +4,7 @@ from subprocess import Popen, PIPE
 import os
 from tempfile import mkdtemp
 from werkzeug import secure_filename
+import md5
 
 app = Flask(__name__)
 
