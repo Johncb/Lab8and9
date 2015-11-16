@@ -168,7 +168,7 @@ def containers_create():
 
     if 'publish' in body:
       port = body['publish']
-      id = docker('run', '-d', '-p', pub, image)
+      id = docker('run', '-d', '-p', port, image)
     else:
       id = docker ('run', '-d', image)
 
