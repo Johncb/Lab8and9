@@ -206,8 +206,8 @@ def containers_update(id):
         state = body['state']
         if state == 'running':
             docker('restart', id)
-	  if state == 'stopped':
-      docker('stop', id)
+	      if state == 'stopped':
+            docker('stop', id)
     except:
         pass
 
