@@ -36,7 +36,7 @@ DELETE /images                      Delete all images
 def containers_index():
     """
     List all containers
- 
+
     curl -s -X GET -H 'Accept: application/json' http://localhost:8080/containers | python -mjson.tool
     curl -s -X GET -H 'Accept: application/json' http://localhost:8080/containers?state=running | python -mjson.tool
 
@@ -51,10 +51,10 @@ def containers_index():
 @app.route('/images', methods=['GET'])
 def images_index():
     """
-    List all images 
-    
-    Complete the code below generating a valid response. 
-    
+    List all images
+
+    Complete the code below generating a valid response.
+
     curl -s -X GET -H 'Accept: application/json'
     http://localhost:8080/images | python -mjson.tool
     """
@@ -118,13 +118,13 @@ def containers_remove(id):
 def containers_remove_all():
     """
     Force remove all containers - dangrous!
-curl -X DELETE -H 'Accept: application/json' 
+curl -X DELETE -H 'Accept: application/json'
 http://localhost:8080/containers
 
     """
     output = docker('ps', '-a')
     list = docker_ps_to_array(output)
-    idS = []    
+    idS = []
     for c in list:
     	id = c['id']
     	docker('stop', id)
@@ -165,8 +165,14 @@ def containers_create():
     """
     body = request.get_json(force=True)
     image = body['image']
-    args = ('run', '-d')
-    id = docker(*(args + (image,)))[0:12]
+
+    if 'publish' in body:
+      port = body['publish']
+      id = docker('run', '-d', '-p', pub, image)
+    else:
+      id = docker ('run', '-d', image)
+
+    id = id[0:12]
     return Response(response='{"id": "%s"}' % id, mimetype="application/json")
 
 
@@ -179,7 +185,7 @@ def images_create():
 
     """
     dockerfile = request.files['file']
-    
+
     resp = ''
     return Response(response=resp, mimetype="application/json")
 
@@ -200,7 +206,7 @@ def containers_update(id):
         state = body['state']
         if state == 'running':
             docker('restart', id)
-	if state == 'stopped':
+	  if state == 'stopped':
             docker('stop', id)
     except:
         pass
@@ -237,13 +243,13 @@ def docker(*args):
         print 'Error: {0} -> {1}'.format(' '.join(cmd), stderr)
     return stderr + stdout
 
-# 
+#
 # Docker output parsing helpers
 #
 
 #
 # Parses the output of a Docker PS command to a python List
-# 
+#
 def docker_ps_to_array(output):
     all = []
     for c in [line.split() for line in output.splitlines()[1:]]:
@@ -269,7 +275,7 @@ def docker_logs_to_object(id, output):
 
 #
 # Parses the output of a Docker image command to a python List
-# 
+#
 def docker_images_to_array(output):
     all = []
     for c in [line.split() for line in output.splitlines()[1:]]:
