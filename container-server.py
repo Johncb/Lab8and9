@@ -188,21 +188,25 @@ def images_create():
     """
     dockerfile = request.files['file']
     m = md5.new()
-    filename = secure_filename(dockerfile.filename)
+    file_name = secure_filename(dockerfile.filename)
     number = random.randint(1, 1000)
 
-    m.update (filename)
+    m.update (file_name)
     m.update (str(number))
 
     folder_name = m.hexdigest()
 
     os.makedirs(folder_name)
 
-    dockerfile.save (os.path.join(folder_name, filename))
+    dockerfile.save (os.path.join(folder_name, file_name))
 
     docker ('build', '-t', folder_name[0:12], os.path.join(os.getcwd(), folder_name))
 
-    resp = 'File saved at: ' +  folder_name + ' and name:' + filename
+    print 'docker build -t' + folder_name[0:12] + '' + os.path.join(os.getcwd(), folder_name)
+    print os.path.join (os.getcwd(), folder_name, file_name)
+    print os.getcwd()
+
+    resp = 'File saved at: ' +  folder_name + ' and name:' + file_name
     return Response(response=resp, mimetype="application/json")
 
 
